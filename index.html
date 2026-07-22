@@ -1,959 +1,795 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>휴먼임팩트 오리 경주 추첨</title>
-  <style>
-    :root{
-      --ink:#163230;
-      --sub:#5a6e6b;
-      --mint:#dff7ed;
-      --mint-strong:#58c8a5;
-      --yellow:#ffd85e;
-      --orange:#ff9c4a;
-      --cream:#fffaf0;
-      --white:#ffffff;
-      --line:#d8e8e3;
-      --danger:#ef6a6a;
-      --shadow:0 18px 45px rgba(21,67,59,.12);
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      min-height:100vh;
-      font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      color:var(--ink);
-      background:
-        radial-gradient(circle at 10% 0%, rgba(255,216,94,.32), transparent 28%),
-        radial-gradient(circle at 95% 15%, rgba(88,200,165,.28), transparent 30%),
-        linear-gradient(135deg,#f8fffc 0%,#fffaf0 100%);
-    }
-    button,input,textarea{font:inherit}
-    button{cursor:pointer}
-    .app{
-      width:min(1500px,100%);
-      margin:0 auto;
-      padding:22px;
-    }
-    .topbar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:18px;
-      margin-bottom:18px;
-    }
-    .brand{
-      display:flex;
-      align-items:center;
-      gap:13px;
-    }
-    .brand-mark{
-      width:58px;height:58px;border-radius:18px;
-      display:grid;place-items:center;
-      font-size:35px;
-      background:var(--yellow);
-      box-shadow:0 10px 22px rgba(255,182,47,.28);
-      transform:rotate(-4deg);
-    }
-    .brand h1{font-size:clamp(23px,3vw,38px);margin:0;letter-spacing:-.05em}
-    .brand p{margin:4px 0 0;color:var(--sub);font-weight:650}
-    .top-actions{display:flex;gap:8px;flex-wrap:wrap}
-    .layout{
-      display:grid;
-      grid-template-columns:360px 1fr;
-      gap:18px;
-      align-items:start;
-    }
-    .panel{
-      background:rgba(255,255,255,.91);
-      border:1px solid rgba(216,232,227,.9);
-      border-radius:24px;
-      box-shadow:var(--shadow);
-    }
-    .settings{
-      padding:20px;
-      position:sticky;
-      top:16px;
-    }
-    .settings h2,.race-head h2{margin:0 0 8px;letter-spacing:-.03em}
-    .help{font-size:13px;color:var(--sub);line-height:1.55}
-    label{
-      display:block;
-      font-size:14px;
-      font-weight:800;
-      margin:18px 0 8px;
-    }
-    textarea{
-      width:100%;
-      min-height:240px;
-      resize:vertical;
-      border:1.5px solid var(--line);
-      border-radius:16px;
-      padding:14px;
-      outline:none;
-      color:var(--ink);
-      background:#fbfffd;
-      line-height:1.55;
-    }
-    textarea:focus,input:focus{border-color:var(--mint-strong);box-shadow:0 0 0 4px rgba(88,200,165,.13)}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .number-wrap{position:relative}
-    input[type="number"],input[type="text"]{
-      width:100%;
-      border:1.5px solid var(--line);
-      border-radius:14px;
-      padding:12px 13px;
-      outline:none;
-      background:#fbfffd;
-      color:var(--ink);
-    }
-    .stats{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      gap:8px;
-      margin-top:12px;
-    }
-    .stat{
-      border-radius:14px;
-      padding:11px 12px;
-      background:var(--cream);
-      border:1px solid #f5e8ca;
-    }
-    .stat b{display:block;font-size:21px}
-    .stat span{font-size:12px;color:var(--sub)}
-    .btn{
-      border:0;
-      border-radius:14px;
-      padding:12px 15px;
-      font-weight:850;
-      color:var(--ink);
-      background:#edf4f2;
-      transition:.18s ease;
-    }
-    .btn:hover{transform:translateY(-1px);filter:brightness(.98)}
-    .btn:active{transform:translateY(0)}
-    .btn.primary{
-      width:100%;
-      margin-top:16px;
-      padding:15px;
-      font-size:18px;
-      background:linear-gradient(135deg,var(--yellow),#ffbe45);
-      box-shadow:0 10px 20px rgba(255,190,69,.25);
-    }
-    .btn.secondary{background:var(--mint)}
-    .btn.ghost{background:rgba(255,255,255,.8);border:1px solid var(--line)}
-    .btn.danger{background:#ffe8e8;color:#9d2f2f}
-    .btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
-    .check-row{
-      display:flex;
-      align-items:center;
-      gap:9px;
-      margin-top:14px;
-      font-size:13px;
-      font-weight:750;
-      color:var(--sub);
-    }
-    .race-panel{overflow:hidden;min-height:720px}
-    .race-head{
-      padding:18px 22px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:12px;
-      border-bottom:1px solid var(--line);
-      background:rgba(255,255,255,.84);
-    }
-    .race-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-    .status{
-      font-size:14px;
-      color:var(--sub);
-      font-weight:750;
-      margin-top:4px;
-    }
-    .countdown{
-      position:absolute;
-      inset:0;
-      z-index:20;
-      display:none;
-      align-items:center;
-      justify-content:center;
-      background:rgba(12,38,34,.46);
-      backdrop-filter:blur(4px);
-    }
-    .countdown.show{display:flex}
-    .countdown span{
-      width:150px;height:150px;border-radius:50%;
-      display:grid;place-items:center;
-      background:var(--yellow);
-      border:10px solid white;
-      font-size:74px;font-weight:950;
-      box-shadow:0 20px 70px rgba(0,0,0,.25);
-      animation:pop .55s ease;
-    }
-    @keyframes pop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
-    .stage-wrap{position:relative}
-    .stage{
-      padding:14px 16px 28px;
-      max-height:calc(100vh - 170px);
-      min-height:650px;
-      overflow:auto;
-      background:
-        linear-gradient(90deg,transparent 0 86%,rgba(255,255,255,.7) 86% 100%),
-        repeating-linear-gradient(0deg,rgba(255,255,255,.46) 0 42px,rgba(224,247,238,.58) 42px 84px),
-        linear-gradient(#e9fbff,#eaf9ee);
-    }
-    .empty{
-      min-height:580px;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      align-items:center;
-      text-align:center;
-      color:var(--sub);
-      gap:10px;
-    }
-    .empty .duck{font-size:85px;filter:drop-shadow(0 10px 10px rgba(0,0,0,.12))}
-    .lane{
-      position:relative;
-      height:72px;
-      min-width:620px;
-      border-bottom:1px dashed rgba(22,50,48,.16);
-      overflow:hidden;
-    }
-    .lane:nth-child(odd){background:rgba(255,255,255,.18)}
-    .lane-name{
-      position:absolute;
-      left:9px;top:9px;
-      z-index:3;
-      max-width:190px;
-      padding:5px 9px;
-      border-radius:10px;
-      background:rgba(255,255,255,.9);
-      border:1px solid rgba(216,232,227,.95);
-      font-size:13px;
-      font-weight:850;
-      overflow:hidden;
-      white-space:nowrap;
-      text-overflow:ellipsis;
-      box-shadow:0 3px 8px rgba(0,0,0,.05);
-    }
-    .runner{
-      position:absolute;
-      left:8px;
-      bottom:5px;
-      width:62px;
-      height:49px;
-      display:flex;
-      align-items:flex-end;
-      justify-content:center;
-      transform:translateX(0);
-      will-change:transform;
-      z-index:4;
-    }
-    .runner .duck-icon{
-      font-size:42px;
-      line-height:1;
-      filter:drop-shadow(0 5px 3px rgba(0,0,0,.15));
-      transform-origin:50% 100%;
-    }
-    .runner.racing .duck-icon{animation:waddle .25s infinite alternate ease-in-out}
-    @keyframes waddle{from{transform:rotate(-7deg) translateY(0)}to{transform:rotate(7deg) translateY(-3px)}}
-    .runner.finished .duck-icon{animation:winbounce .45s 4 alternate ease-in-out}
-    @keyframes winbounce{to{transform:translateY(-12px) rotate(5deg) scale(1.08)}}
-    .finish-line{
-      position:absolute;
-      right:8%;
-      top:0;bottom:0;
-      width:16px;
-      opacity:.68;
-      background:
-        linear-gradient(45deg,#1e2b2a 25%,transparent 25%) 0 0/16px 16px,
-        linear-gradient(45deg,transparent 75%,#1e2b2a 75%) 0 0/16px 16px,
-        linear-gradient(45deg,transparent 75%,#1e2b2a 75%) 8px -8px/16px 16px,
-        linear-gradient(45deg,#1e2b2a 25%,#fff 25%,#fff 75%,#1e2b2a 75%) 8px 8px/16px 16px;
-      z-index:2;
-    }
-    .winner-badge{
-      position:absolute;
-      right:10px;top:19px;
-      z-index:8;
-      display:none;
-      align-items:center;
-      gap:5px;
-      background:var(--yellow);
-      border:3px solid white;
-      border-radius:999px;
-      padding:7px 10px;
-      font-size:13px;
-      font-weight:950;
-      box-shadow:0 8px 20px rgba(255,174,48,.35);
-    }
-    .lane.winner .winner-badge{display:flex}
-    .lane.winner{background:linear-gradient(90deg,rgba(255,216,94,.07),rgba(255,216,94,.32))}
-    .modal{
-      position:fixed;
-      inset:0;
-      z-index:50;
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding:20px;
-      background:rgba(13,37,34,.6);
-      backdrop-filter:blur(6px);
-    }
-    .modal.show{display:flex}
-    .modal-card{
-      width:min(650px,100%);
-      max-height:88vh;
-      overflow:auto;
-      background:white;
-      border-radius:30px;
-      padding:28px;
-      box-shadow:0 30px 100px rgba(0,0,0,.28);
-      text-align:center;
-      position:relative;
-    }
-    .modal-card h2{font-size:clamp(30px,6vw,52px);margin:4px 0 8px;letter-spacing:-.05em}
-    .modal-card .sub{color:var(--sub);font-weight:700}
-    .winner-list{display:grid;gap:9px;margin:20px 0;text-align:left}
-    .winner-item{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      padding:13px 15px;
-      border-radius:16px;
-      background:linear-gradient(135deg,#fff8d8,#fffdf4);
-      border:1px solid #ffe79a;
-      font-weight:900;
-      font-size:18px;
-    }
-    .winner-item .rank{
-      width:39px;height:39px;border-radius:50%;
-      display:grid;place-items:center;
-      flex:0 0 auto;
-      background:var(--yellow);
-    }
-    .modal-buttons{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-    .confetti{
-      pointer-events:none;
-      position:fixed;
-      inset:0;
-      z-index:60;
-      overflow:hidden;
-    }
-    .confetti i{
-      position:absolute;
-      top:-20px;
-      width:10px;height:18px;
-      border-radius:3px;
-      animation:fall var(--dur) linear forwards;
-    }
-    @keyframes fall{to{transform:translate(var(--drift),110vh) rotate(900deg)}}
-    .toast{
-      position:fixed;
-      bottom:20px;left:50%;
-      z-index:80;
-      transform:translateX(-50%) translateY(30px);
-      opacity:0;
-      background:#173e38;
-      color:white;
-      border-radius:999px;
-      padding:11px 17px;
-      font-weight:800;
-      transition:.25s;
-      box-shadow:0 10px 30px rgba(0,0,0,.2);
-    }
-    .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-    .mini-note{margin-top:9px;color:var(--sub);font-size:12px;line-height:1.5}
-    @media (max-width:900px){
-      .layout{grid-template-columns:1fr}
-      .settings{position:static}
-      .race-panel{min-height:650px}
-      .stage{max-height:none}
-    }
-    @media (max-width:560px){
-      .app{padding:12px}
-      .topbar{align-items:flex-start}
-      .top-actions{display:none}
-      .brand-mark{width:48px;height:48px;font-size:29px}
-      .brand p{font-size:13px}
-      .race-head{align-items:flex-start;flex-direction:column}
-      .race-actions{justify-content:flex-start}
-      .row{grid-template-columns:1fr}
-      .settings{padding:16px}
-      .modal-card{padding:22px 16px}
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<title>휴먼임팩트 덕 레이스</title>
+<style>
+  :root{
+    --navy:#153b3a;
+    --teal:#0f766e;
+    --mint:#5bd5b2;
+    --yellow:#ffd84d;
+    --orange:#ff9f43;
+    --cream:#fff8e7;
+    --paper:#ffffff;
+    --line:#d8ebe6;
+    --muted:#67817d;
+    --danger:#ee6b6e;
+    --shadow:0 22px 70px rgba(10,54,51,.22);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;background:#083b4e;color:var(--navy);
+    font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  button,input,textarea{font:inherit}
+  button{cursor:pointer}
+  .app{min-height:100vh;display:flex;flex-direction:column;overflow:hidden;
+    background:linear-gradient(180deg,#8be0ee 0%,#d7f9ff 34%,#1ba6c5 35%,#087695 100%)}
+  .topbar{
+    height:76px;display:flex;align-items:center;justify-content:space-between;gap:16px;
+    padding:0 24px;color:white;background:linear-gradient(90deg,#0e6e68,#0b8175);
+    box-shadow:0 6px 24px rgba(0,0,0,.18);z-index:10
+  }
+  .brand{display:flex;align-items:center;gap:12px;min-width:0}
+  .brand-badge{width:48px;height:48px;border-radius:15px;display:grid;place-items:center;
+    background:var(--yellow);box-shadow:0 8px 20px rgba(0,0,0,.16);font-size:30px}
+  .brand h1{font-size:clamp(20px,2.3vw,31px);margin:0;letter-spacing:-.045em;white-space:nowrap}
+  .brand p{margin:2px 0 0;font-size:12px;opacity:.8;font-weight:700}
+  .top-actions{display:flex;align-items:center;gap:8px}
+  .btn{
+    appearance:none;border:0;border-radius:14px;padding:11px 15px;font-weight:900;
+    color:var(--navy);background:#edf6f4;transition:.18s;box-shadow:none
+  }
+  .btn:hover{transform:translateY(-1px);filter:brightness(.98)}
+  .btn:active{transform:translateY(0)}
+  .btn.primary{background:linear-gradient(135deg,var(--yellow),#ffb93d);box-shadow:0 10px 22px rgba(255,178,38,.28)}
+  .btn.teal{background:linear-gradient(135deg,#55d9b5,#37c29d)}
+  .btn.ghost{color:white;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22)}
+  .btn.danger{background:#ffe7e7;color:#9d3638}
+  .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  .race-shell{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 230px}
+  .canvas-wrap{position:relative;min-width:0;min-height:0;overflow:hidden}
+  canvas{display:block;width:100%;height:100%;touch-action:none}
+  .hud{
+    position:absolute;left:18px;top:16px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+    pointer-events:none
+  }
+  .hud-pill{
+    padding:9px 13px;border-radius:999px;background:rgba(7,48,61,.78);color:white;
+    border:1px solid rgba(255,255,255,.2);backdrop-filter:blur(7px);font-weight:900;
+    box-shadow:0 8px 22px rgba(0,0,0,.16)
+  }
+  .hud-pill strong{color:var(--yellow)}
+  .progress{
+    position:absolute;left:20px;right:20px;bottom:18px;height:15px;border-radius:999px;
+    background:rgba(4,45,57,.58);border:2px solid rgba(255,255,255,.65);overflow:hidden;
+    box-shadow:0 8px 22px rgba(0,0,0,.2)
+  }
+  .progress > i{display:block;width:0;height:100%;border-radius:inherit;
+    background:linear-gradient(90deg,#ffe36e,#ff9c44);transition:width .08s linear}
+  .leaderboard{
+    min-width:0;padding:14px;background:linear-gradient(180deg,#fffdf5,#ecfaf5);
+    border-left:1px solid rgba(255,255,255,.6);box-shadow:-12px 0 35px rgba(3,49,60,.16);
+    z-index:5;overflow:auto
+  }
+  .leaderboard h2{margin:2px 0 4px;font-size:20px;letter-spacing:-.04em}
+  .leaderboard .small{font-size:12px;color:var(--muted);font-weight:750;margin-bottom:12px}
+  .rank-list{display:grid;gap:8px}
+  .rank-card{
+    display:grid;grid-template-columns:34px minmax(0,1fr);align-items:center;gap:8px;
+    padding:10px;border-radius:15px;background:white;border:1px solid var(--line);
+    box-shadow:0 7px 17px rgba(15,91,82,.07);transition:.18s
+  }
+  .rank-card:first-child{background:linear-gradient(135deg,#fff6bd,#fffdf1);border-color:#ffd95d;transform:scale(1.02)}
+  .rank-num{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;
+    background:#def4ed;font-weight:950}
+  .rank-card:first-child .rank-num{background:var(--yellow)}
+  .rank-name{min-width:0;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:13px}
+  .rank-meter{height:5px;border-radius:999px;background:#e8f3f0;margin-top:5px;overflow:hidden}
+  .rank-meter i{display:block;height:100%;background:#3fc3a0;border-radius:inherit}
+  .side-actions{display:grid;gap:8px;margin-top:14px}
+  .side-actions .btn{width:100%}
+  .waiting{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    z-index:7;background:radial-gradient(circle at 50% 35%,rgba(255,255,255,.15),rgba(3,49,60,.15));
+    pointer-events:none
+  }
+  .waiting-card{text-align:center;color:white;text-shadow:0 3px 10px rgba(0,0,0,.26)}
+  .waiting-duck{font-size:100px;filter:drop-shadow(0 14px 12px rgba(0,0,0,.22));animation:float 1.8s ease-in-out infinite}
+  @keyframes float{50%{transform:translateY(-12px) rotate(3deg)}}
+  .waiting h2{margin:8px 0 4px;font-size:clamp(28px,4vw,52px);letter-spacing:-.055em}
+  .waiting p{margin:0;font-weight:800;opacity:.9}
+  .countdown{
+    position:absolute;inset:0;z-index:30;display:none;align-items:center;justify-content:center;
+    background:rgba(0,34,45,.36);backdrop-filter:blur(3px)
+  }
+  .countdown.show{display:flex}
+  .countdown b{
+    width:180px;height:180px;border-radius:50%;display:grid;place-items:center;
+    background:var(--yellow);border:12px solid white;color:var(--navy);
+    font-size:80px;box-shadow:0 22px 80px rgba(0,0,0,.3);animation:countPop .6s ease
+  }
+  @keyframes countPop{0%{opacity:0;transform:scale(.45) rotate(-8deg)}70%{transform:scale(1.12)}100%{opacity:1;transform:scale(1)}}
+  .setup{
+    position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;
+    padding:22px;background:linear-gradient(135deg,rgba(4,52,62,.8),rgba(8,87,83,.82));
+    backdrop-filter:blur(9px)
+  }
+  .setup.hidden{display:none}
+  .setup-card{
+    width:min(1000px,100%);max-height:92vh;overflow:auto;background:rgba(255,255,255,.97);
+    border-radius:30px;box-shadow:var(--shadow);display:grid;grid-template-columns:1.15fr .85fr;
+    border:1px solid rgba(255,255,255,.7)
+  }
+  .setup-main{padding:28px}
+  .setup-side{padding:28px;background:linear-gradient(160deg,#e8fbf5,#fff9e9);border-radius:0 30px 30px 0}
+  .setup h2{font-size:32px;margin:0 0 5px;letter-spacing:-.05em}
+  .setup .desc{color:var(--muted);font-size:14px;font-weight:700;line-height:1.55}
+  label{display:block;margin:18px 0 8px;font-size:14px;font-weight:900}
+  textarea,input{
+    width:100%;border:1.5px solid var(--line);border-radius:15px;padding:13px 14px;
+    background:#fbfffd;color:var(--navy);outline:none
+  }
+  textarea{min-height:260px;resize:vertical;line-height:1.55}
+  textarea:focus,input:focus{border-color:#48c9a5;box-shadow:0 0 0 4px rgba(72,201,165,.14)}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .check{display:flex;gap:9px;align-items:flex-start;margin-top:13px;color:var(--muted);
+    font-size:13px;font-weight:750;line-height:1.4}
+  .check input{width:auto;margin-top:2px}
+  .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:15px}
+  .stat{padding:13px;border-radius:16px;background:white;border:1px solid var(--line)}
+  .stat b{display:block;font-size:25px}.stat span{font-size:12px;color:var(--muted);font-weight:750}
+  .feature-list{display:grid;gap:9px;margin:18px 0}
+  .feature{display:flex;gap:9px;align-items:center;padding:10px 12px;background:rgba(255,255,255,.75);
+    border-radius:14px;font-size:13px;font-weight:850}
+  .start-big{width:100%;padding:16px;font-size:18px}
+  .setup-note{font-size:11px;line-height:1.5;color:var(--muted);margin-top:10px}
+  .modal{
+    position:fixed;inset:0;z-index:80;display:none;align-items:center;justify-content:center;padding:22px;
+    background:rgba(0,35,43,.72);backdrop-filter:blur(7px)
+  }
+  .modal.show{display:flex}
+  .modal-card{
+    width:min(700px,100%);max-height:90vh;overflow:auto;background:white;border-radius:30px;
+    padding:28px;text-align:center;box-shadow:0 30px 100px rgba(0,0,0,.35)
+  }
+  .modal-card h2{font-size:clamp(33px,6vw,58px);margin:4px 0 5px;letter-spacing:-.06em}
+  .modal-card .sub{color:var(--muted);font-weight:750}
+  .podium{
+    display:flex;align-items:flex-end;justify-content:center;gap:10px;margin:26px auto 18px;min-height:230px
+  }
+  .podium-item{width:31%;display:flex;flex-direction:column;align-items:center;min-width:0}
+  .podium-duck{font-size:50px;filter:drop-shadow(0 7px 5px rgba(0,0,0,.12))}
+  .podium-name{max-width:100%;padding:7px 10px;border-radius:999px;background:#173e3b;color:white;
+    font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:5px 0 7px}
+  .podium-step{width:100%;border-radius:16px 16px 5px 5px;display:grid;place-items:center;font-size:34px;font-weight:950}
+  .podium-item.first{order:2}.podium-item.second{order:1}.podium-item.third{order:3}
+  .podium-item.first .podium-step{height:145px;background:linear-gradient(#ffe770,#ffc93e)}
+  .podium-item.second .podium-step{height:105px;background:linear-gradient(#e8f0f1,#bfced2)}
+  .podium-item.third .podium-step{height:78px;background:linear-gradient(#f2c396,#d9975a)}
+  .extra-winners{display:grid;gap:8px;margin:15px 0;text-align:left}
+  .extra-winner{display:flex;gap:10px;align-items:center;padding:11px 13px;border-radius:14px;background:#f4faf8;
+    border:1px solid var(--line);font-weight:900}
+  .extra-winner b{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--yellow)}
+  .modal-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+  .confetti{position:fixed;inset:0;pointer-events:none;z-index:90;overflow:hidden}
+  .confetti i{position:absolute;top:-20px;width:10px;height:20px;border-radius:3px;
+    animation:fall var(--dur) linear forwards}
+  @keyframes fall{to{transform:translate(var(--drift),110vh) rotate(1000deg)}}
+  .toast{position:fixed;left:50%;bottom:24px;z-index:120;transform:translate(-50%,30px);opacity:0;
+    background:#123f3b;color:white;border-radius:999px;padding:12px 18px;font-weight:850;
+    box-shadow:0 12px 35px rgba(0,0,0,.28);transition:.23s}
+  .toast.show{transform:translate(-50%,0);opacity:1}
+  @media(max-width:900px){
+    .race-shell{grid-template-columns:minmax(0,1fr) 180px}
+    .leaderboard{padding:10px}.rank-card{grid-template-columns:30px minmax(0,1fr);padding:8px}
+    .setup-card{grid-template-columns:1fr}.setup-side{border-radius:0 0 30px 30px}
+  }
+  @media(max-width:650px){
+    .topbar{height:64px;padding:0 12px}.brand p{display:none}.brand-badge{width:42px;height:42px}
+    .top-actions .btn:not(#fullscreenBtn){display:none}
+    .race-shell{display:block}.leaderboard{position:absolute;right:8px;top:8px;width:145px;max-height:46%;
+      border-radius:18px;border:1px solid rgba(255,255,255,.7);padding:8px;background:rgba(255,255,255,.88);
+      backdrop-filter:blur(8px)}
+    .leaderboard h2{font-size:14px}.leaderboard .small{display:none}.rank-card{padding:6px;grid-template-columns:25px minmax(0,1fr)}
+    .rank-num{width:24px;height:24px;font-size:11px}.rank-name{font-size:11px}.side-actions{display:none}
+    .setup{padding:10px}.setup-main,.setup-side{padding:19px}.setup h2{font-size:27px}
+    .setup-side{display:none}.form-grid{grid-template-columns:1fr 1fr}.waiting-duck{font-size:72px}
+    .waiting h2{font-size:30px}.hud{left:8px;top:8px;right:155px}.hud-pill{font-size:11px;padding:7px 9px}
+  }
+</style>
 </head>
 <body>
-  <div class="app">
-    <header class="topbar">
-      <div class="brand">
-        <div class="brand-mark">🐥</div>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-badge">🦆</div>
+      <div>
+        <h1>휴먼임팩트 덕 레이스</h1>
+        <p>사람과 관계를 잇는 즐거운 랜덤 추첨</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="btn ghost" id="setupBtn">명단 설정</button>
+      <button class="btn ghost" id="fullscreenBtn">전체화면</button>
+    </div>
+  </header>
+
+  <main class="race-shell">
+    <section class="canvas-wrap" id="canvasWrap">
+      <canvas id="raceCanvas"></canvas>
+      <div class="hud">
+        <div class="hud-pill">출전 <strong id="hudCount">0</strong>명</div>
+        <div class="hud-pill">당첨 <strong id="hudWinnerCount">1</strong>명</div>
+        <div class="hud-pill" id="raceClock">READY</div>
+      </div>
+      <div class="progress"><i id="progressBar"></i></div>
+      <div class="waiting" id="waiting">
+        <div class="waiting-card">
+          <div class="waiting-duck">🦆</div>
+          <h2 id="waitingTitle">오늘의 굿즈 당첨자는?</h2>
+          <p>명단을 설정하고 오리 경주를 시작해주세요.</p>
+        </div>
+      </div>
+      <div class="countdown" id="countdown"><b>3</b></div>
+    </section>
+
+    <aside class="leaderboard">
+      <h2>실시간 순위</h2>
+      <div class="small">결승선 통과 순서가 당첨 순서입니다.</div>
+      <div class="rank-list" id="rankList"></div>
+      <div class="side-actions">
+        <button class="btn primary" id="startSideBtn">🏁 경주 시작</button>
+        <button class="btn teal" id="newRaceBtn">새 경주</button>
+        <button class="btn" id="historyBtn">당첨 기록</button>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<section class="setup" id="setup">
+  <div class="setup-card">
+    <div class="setup-main">
+      <h2>덕 레이스 설정</h2>
+      <div class="desc">참여자 이름을 한 줄에 한 명씩 붙여넣으세요. 기관명은 이름 뒤에 함께 입력해도 됩니다.</div>
+
+      <label for="participants">참여자 명단</label>
+      <textarea id="participants" placeholder="김휴먼 | 행복복지관&#10;이임팩트 | 사랑센터&#10;박오리 | 희망복지관"></textarea>
+
+      <div class="stat-grid">
+        <div class="stat"><b id="totalCount">0</b><span>유효 참여자</span></div>
+        <div class="stat"><b id="duplicateCount">0</b><span>제거된 중복</span></div>
+      </div>
+
+      <div class="form-grid">
         <div>
-          <h1>휴먼임팩트 오리 경주</h1>
-          <p>사람과 관계를 잇는 즐거운 랜덤 추첨</p>
+          <label for="winnerCount">당첨 인원</label>
+          <input type="number" id="winnerCount" min="1" value="1">
+        </div>
+        <div>
+          <label for="raceSeconds">경주 시간</label>
+          <input type="number" id="raceSeconds" min="8" max="30" value="14">
         </div>
       </div>
-      <div class="top-actions">
-        <button class="btn ghost" id="fullscreenBtn">전체화면</button>
-        <button class="btn ghost" id="sampleBtn">예시 명단</button>
+
+      <label for="eventTitle">이벤트 제목</label>
+      <input type="text" id="eventTitle" value="오늘의 굿즈 당첨자는?">
+
+      <label class="check"><input type="checkbox" id="excludePrevious" checked>
+        <span>재추첨할 때 이전 당첨자는 당첨 대상에서 제외합니다. 화면에는 함께 출전시킬 수도 있습니다.</span>
+      </label>
+      <label class="check"><input type="checkbox" id="showExcluded" checked>
+        <span>이전 당첨자도 경주 화면에는 출전시키기</span>
+      </label>
+      <label class="check"><input type="checkbox" id="soundEnabled" checked>
+        <span>카운트다운·경주·당첨 효과음 사용</span>
+      </label>
+    </div>
+
+    <div class="setup-side">
+      <h2 style="font-size:25px">게임형 경주 연출</h2>
+      <div class="feature-list">
+        <div class="feature">🌊 한 화면에서 떼로 달리는 물 위 오리</div>
+        <div class="feature">⚡ 경기 중 계속 바뀌는 추월과 선두</div>
+        <div class="feature">🏆 우측 실시간 순위와 결승선 판정</div>
+        <div class="feature">🎉 경주 종료 후 시상대·축하 효과</div>
+        <div class="feature">📱 사파리·모바일·전체화면 지원</div>
       </div>
-    </header>
-
-    <main class="layout">
-      <aside class="panel settings">
-        <h2>추첨 설정</h2>
-        <div class="help">참여자 이름을 한 줄에 한 명씩 붙여넣으세요. 이름 뒤에 기관명이나 센터명을 함께 넣어도 됩니다.</div>
-
-        <label for="participants">참여자 명단</label>
-        <textarea id="participants" placeholder="예시)
-김휴먼 | 행복복지관
-이임팩트 | 사랑센터
-박오리 | 희망복지관"></textarea>
-
-        <div class="stats">
-          <div class="stat"><b id="totalCount">0</b><span>유효 참여자</span></div>
-          <div class="stat"><b id="duplicateCount">0</b><span>제거된 중복</span></div>
-        </div>
-
-        <div class="row">
-          <div>
-            <label for="winnerCount">당첨 인원</label>
-            <input type="number" id="winnerCount" min="1" value="1" />
-          </div>
-          <div>
-            <label for="raceSeconds">경주 시간</label>
-            <input type="number" id="raceSeconds" min="3" max="20" value="7" />
-          </div>
-        </div>
-
-        <label for="eventTitle">이벤트 제목</label>
-        <input type="text" id="eventTitle" value="오늘의 굿즈 당첨자는?" />
-
-        <div class="check-row">
-          <input type="checkbox" id="excludePrevious" checked />
-          <span>재추첨 시 이전 당첨자 제외</span>
-        </div>
-        <div class="check-row">
-          <input type="checkbox" id="soundEnabled" checked />
-          <span>카운트다운·당첨 효과음</span>
-        </div>
-
-        <button class="btn primary" id="startBtn">🏁 오리 경주 시작!</button>
-        <div class="mini-note">공정성을 위해 당첨 결과를 먼저 무작위로 정한 뒤, 그 결과에 맞춰 경주가 연출됩니다.</div>
-      </aside>
-
-      <section class="panel race-panel">
-        <div class="race-head">
-          <div>
-            <h2 id="raceTitle">오늘의 굿즈 당첨자는?</h2>
-            <div class="status" id="statusText">명단을 입력하면 오리들이 출발선에 섭니다.</div>
-          </div>
-          <div class="race-actions">
-            <button class="btn secondary" id="resetBtn">초기화</button>
-            <button class="btn ghost" id="resultsBtn">당첨 기록</button>
-          </div>
-        </div>
-        <div class="stage-wrap">
-          <div class="countdown" id="countdown"><span>3</span></div>
-          <div class="stage" id="stage">
-            <div class="empty">
-              <div class="duck">🦆</div>
-              <b>참여자 명단을 입력해주세요</b>
-              <span>귀여운 오리들이 공정하게 달려갑니다.</span>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
-  </div>
-
-  <div class="modal" id="winnerModal" aria-hidden="true">
-    <div class="modal-card">
-      <div style="font-size:58px">🎉🦆🎁</div>
-      <h2>축하합니다!</h2>
-      <div class="sub" id="modalSubtitle">오늘의 굿즈 당첨자입니다.</div>
-      <div class="winner-list" id="winnerList"></div>
-      <div class="modal-buttons">
-        <button class="btn secondary" id="copyWinnersBtn">당첨자 복사</button>
-        <button class="btn ghost" id="downloadBtn">CSV 저장</button>
-        <button class="btn primary" style="width:auto;margin-top:0" id="closeModalBtn">확인</button>
-      </div>
+      <button class="btn primary start-big" id="applyAndStartBtn">명단 적용하고 경주 시작</button>
+      <button class="btn" style="width:100%;margin-top:8px" id="sampleBtn">예시 명단 불러오기</button>
+      <div class="setup-note">당첨 결과는 경주 시작 시 보안 난수로 먼저 결정됩니다. 애니메이션은 정해진 결과에 따라 자연스럽게 추월과 결승 순서를 연출합니다.</div>
     </div>
   </div>
+</section>
 
-  <div class="modal" id="historyModal" aria-hidden="true">
-    <div class="modal-card">
-      <div style="font-size:46px">📋</div>
-      <h2 style="font-size:36px">당첨 기록</h2>
-      <div class="winner-list" id="historyList"></div>
-      <div class="modal-buttons">
-        <button class="btn danger" id="clearHistoryBtn">기록 삭제</button>
-        <button class="btn primary" style="width:auto;margin-top:0" id="closeHistoryBtn">닫기</button>
-      </div>
+<div class="modal" id="winnerModal">
+  <div class="modal-card">
+    <div style="font-size:58px">🎉🦆🎁</div>
+    <h2>축하합니다!</h2>
+    <div class="sub" id="winnerSubtitle">오늘의 굿즈 당첨자입니다.</div>
+    <div class="podium" id="podium"></div>
+    <div class="extra-winners" id="extraWinners"></div>
+    <div class="modal-actions">
+      <button class="btn teal" id="copyBtn">당첨자 복사</button>
+      <button class="btn" id="csvBtn">CSV 저장</button>
+      <button class="btn primary" id="closeWinnerBtn">확인</button>
     </div>
   </div>
+</div>
 
-  <div class="confetti" id="confetti"></div>
-  <div class="toast" id="toast"></div>
+<div class="modal" id="historyModal">
+  <div class="modal-card">
+    <div style="font-size:48px">📋</div>
+    <h2 style="font-size:38px">당첨 기록</h2>
+    <div class="extra-winners" id="historyList"></div>
+    <div class="modal-actions">
+      <button class="btn danger" id="clearHistoryBtn">기록 삭제</button>
+      <button class="btn primary" id="closeHistoryBtn">닫기</button>
+    </div>
+  </div>
+</div>
 
-  <script>
-    const $ = (sel) => document.querySelector(sel);
-    const els = {
-      participants: $("#participants"),
-      winnerCount: $("#winnerCount"),
-      raceSeconds: $("#raceSeconds"),
-      eventTitle: $("#eventTitle"),
-      excludePrevious: $("#excludePrevious"),
-      soundEnabled: $("#soundEnabled"),
-      totalCount: $("#totalCount"),
-      duplicateCount: $("#duplicateCount"),
-      startBtn: $("#startBtn"),
-      resetBtn: $("#resetBtn"),
-      sampleBtn: $("#sampleBtn"),
-      fullscreenBtn: $("#fullscreenBtn"),
-      resultsBtn: $("#resultsBtn"),
-      raceTitle: $("#raceTitle"),
-      statusText: $("#statusText"),
-      stage: $("#stage"),
-      countdown: $("#countdown"),
-      winnerModal: $("#winnerModal"),
-      winnerList: $("#winnerList"),
-      modalSubtitle: $("#modalSubtitle"),
-      closeModalBtn: $("#closeModalBtn"),
-      copyWinnersBtn: $("#copyWinnersBtn"),
-      downloadBtn: $("#downloadBtn"),
-      historyModal: $("#historyModal"),
-      historyList: $("#historyList"),
-      closeHistoryBtn: $("#closeHistoryBtn"),
-      clearHistoryBtn: $("#clearHistoryBtn"),
-      confetti: $("#confetti"),
-      toast: $("#toast")
-    };
+<div class="confetti" id="confetti"></div>
+<div class="toast" id="toast"></div>
 
-    let currentParticipants = [];
-    let currentWinners = [];
-    let isRacing = false;
-    let history = JSON.parse(localStorage.getItem("humanimpact-duck-history") || "[]");
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const canvas = $("#raceCanvas");
+  const ctx = canvas.getContext("2d");
+  const els = {
+    canvasWrap:$("#canvasWrap"), setup:$("#setup"), setupBtn:$("#setupBtn"),
+    fullscreenBtn:$("#fullscreenBtn"), participants:$("#participants"),
+    winnerCount:$("#winnerCount"), raceSeconds:$("#raceSeconds"),
+    eventTitle:$("#eventTitle"), excludePrevious:$("#excludePrevious"),
+    showExcluded:$("#showExcluded"), soundEnabled:$("#soundEnabled"),
+    totalCount:$("#totalCount"), duplicateCount:$("#duplicateCount"),
+    applyAndStartBtn:$("#applyAndStartBtn"), sampleBtn:$("#sampleBtn"),
+    waiting:$("#waiting"), waitingTitle:$("#waitingTitle"), countdown:$("#countdown"),
+    rankList:$("#rankList"), startSideBtn:$("#startSideBtn"), newRaceBtn:$("#newRaceBtn"),
+    historyBtn:$("#historyBtn"), hudCount:$("#hudCount"), hudWinnerCount:$("#hudWinnerCount"),
+    raceClock:$("#raceClock"), progressBar:$("#progressBar"), winnerModal:$("#winnerModal"),
+    winnerSubtitle:$("#winnerSubtitle"), podium:$("#podium"), extraWinners:$("#extraWinners"),
+    copyBtn:$("#copyBtn"), csvBtn:$("#csvBtn"), closeWinnerBtn:$("#closeWinnerBtn"),
+    historyModal:$("#historyModal"), historyList:$("#historyList"),
+    clearHistoryBtn:$("#clearHistoryBtn"), closeHistoryBtn:$("#closeHistoryBtn"),
+    confetti:$("#confetti"), toast:$("#toast")
+  };
 
-    function normalizeLine(line){
-      return line.replace(/\s+/g, " ").trim();
-    }
+  let dpr=1, W=1280, H=720;
+  let participants=[], racers=[], winners=[], isRacing=false, raceStart=0, raceDuration=14000;
+  let animId=null, lastFrame=0, sceneTime=0, finishStarted=false;
+  let history=JSON.parse(localStorage.getItem("humanimpact-duck-race-v2-history")||"[]");
+  let audioCtx=null;
 
-    function getParticipants(){
-      const raw = els.participants.value
-        .split(/\r?\n/)
-        .map(normalizeLine)
-        .filter(Boolean);
+  const colors=["#ff5c5c","#6f74ff","#26b78f","#ff8e43","#9d65dc","#2f9dd8","#ee6fa9","#4eaa4b"];
+  const accessories=["cap","scarf","none","cap","none","scarf"];
 
-      const seen = new Set();
-      const unique = [];
-      let duplicates = 0;
+  function resize(){
+    const rect=els.canvasWrap.getBoundingClientRect();
+    dpr=Math.min(2,window.devicePixelRatio||1);
+    W=Math.max(320,rect.width); H=Math.max(420,rect.height);
+    canvas.width=Math.round(W*dpr); canvas.height=Math.round(H*dpr);
+    canvas.style.width=W+"px"; canvas.style.height=H+"px";
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    if(!isRacing) drawScene(performance.now(),0);
+  }
+  window.addEventListener("resize",resize);
 
-      for(const name of raw){
-        const key = name.toLocaleLowerCase("ko-KR");
-        if(seen.has(key)){
-          duplicates++;
-        }else{
-          seen.add(key);
-          unique.push(name);
-        }
-      }
-      els.totalCount.textContent = unique.length;
-      els.duplicateCount.textContent = duplicates;
-      return unique;
-    }
+  function parseParticipants(){
+    const raw=els.participants.value.split(/\r?\n/).map(v=>v.replace(/\s+/g," ").trim()).filter(Boolean);
+    const seen=new Set(), unique=[]; let dup=0;
+    raw.forEach(v=>{const key=v.toLocaleLowerCase("ko-KR"); if(seen.has(key)) dup++; else{seen.add(key);unique.push(v)}});
+    els.totalCount.textContent=unique.length; els.duplicateCount.textContent=dup;
+    els.winnerCount.max=Math.max(1,unique.length);
+    if(+els.winnerCount.value>unique.length) els.winnerCount.value=Math.max(1,unique.length);
+    return unique;
+  }
 
-    function secureRandomInt(max){
-      if(max <= 0) return 0;
-      const range = 0x100000000;
-      const limit = range - (range % max);
-      const buf = new Uint32Array(1);
-      let value;
-      do{
-        crypto.getRandomValues(buf);
-        value = buf[0];
-      }while(value >= limit);
-      return value % max;
-    }
+  function secureInt(max){
+    if(max<=0)return 0;
+    const range=0x100000000, limit=range-(range%max), buf=new Uint32Array(1);
+    let n; do{crypto.getRandomValues(buf);n=buf[0]}while(n>=limit);
+    return n%max;
+  }
+  function secureShuffle(arr){
+    const a=[...arr];
+    for(let i=a.length-1;i>0;i--){const j=secureInt(i+1);[a[i],a[j]]=[a[j],a[i]]}
+    return a;
+  }
+  function rand(min,max){return min+Math.random()*(max-min)}
+  function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+  function smooth(t){return t*t*(3-2*t)}
+  function escapeHtml(v){return v.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
 
-    function secureShuffle(arr){
-      const copy = [...arr];
-      for(let i = copy.length - 1; i > 0; i--){
-        const j = secureRandomInt(i + 1);
-        [copy[i], copy[j]] = [copy[j], copy[i]];
-      }
-      return copy;
-    }
+  function getPreviousWinners(){return new Set(history.flatMap(h=>h.winners))}
+  function buildRace(){
+    participants=parseParticipants();
+    const winnerCount=Math.max(1,Math.min(participants.length,+els.winnerCount.value||1));
+    if(participants.length<2){toast("참여자를 2명 이상 입력해주세요.");return false}
+    const previous=getPreviousWinners();
+    const eligible=els.excludePrevious.checked?participants.filter(n=>!previous.has(n)):participants.slice();
+    if(eligible.length<winnerCount){toast(`당첨 가능한 참여자는 ${eligible.length}명입니다.`);return false}
 
-    function renderLanes(participants){
-      if(!participants.length){
-        els.stage.innerHTML = `
-          <div class="empty">
-            <div class="duck">🦆</div>
-            <b>참여자 명단을 입력해주세요</b>
-            <span>귀여운 오리들이 공정하게 달려갑니다.</span>
-          </div>`;
-        return;
-      }
+    winners=secureShuffle(eligible).slice(0,winnerCount);
+    let visible=els.showExcluded.checked?participants.slice():eligible.slice();
+    const remaining=secureShuffle(visible.filter(n=>!winners.includes(n)));
+    const fixedOrder=[...winners,...remaining];
+    raceDuration=clamp(+els.raceSeconds.value||14,8,30)*1000;
 
-      els.stage.innerHTML = "";
-      const fragment = document.createDocumentFragment();
-      participants.forEach((name, index) => {
-        const lane = document.createElement("div");
-        lane.className = "lane";
-        lane.dataset.name = name;
-        lane.innerHTML = `
-          <div class="lane-name" title="${escapeHtml(name)}">${escapeHtml(name)}</div>
-          <div class="runner" data-index="${index}"><span class="duck-icon">${duckFor(index)}</span></div>
-          <div class="finish-line"></div>
-          <div class="winner-badge">🏆 당첨</div>`;
-        fragment.appendChild(lane);
-      });
-      els.stage.appendChild(fragment);
-      els.statusText.textContent = `총 ${participants.length}마리의 오리가 출발을 기다리고 있습니다.`;
-    }
-
-    function duckFor(i){
-      const ducks = ["🦆","🐥","🐤","🐣"];
-      return ducks[i % ducks.length];
-    }
-
-    function escapeHtml(value){
-      return value.replace(/[&<>"']/g, ch => ({
-        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-      }[ch]));
-    }
-
-    function updateFromInput(){
-      if(isRacing) return;
-      currentParticipants = getParticipants();
-      renderLanes(currentParticipants);
-      els.raceTitle.textContent = els.eventTitle.value.trim() || "오늘의 굿즈 당첨자는?";
-      const max = Math.max(1,currentParticipants.length);
-      els.winnerCount.max = max;
-      if(Number(els.winnerCount.value) > max) els.winnerCount.value = max;
-    }
-
-    function getEligibleParticipants(){
-      const all = getParticipants();
-      if(!els.excludePrevious.checked) return all;
-      const won = new Set(history.flatMap(item => item.winners));
-      return all.filter(name => !won.has(name));
-    }
-
-    function validate(){
-      const all = getParticipants();
-      const eligible = getEligibleParticipants();
-      const count = Number(els.winnerCount.value);
-
-      if(all.length < 2){
-        showToast("참여자를 2명 이상 입력해주세요.");
-        return null;
-      }
-      if(!Number.isInteger(count) || count < 1){
-        showToast("당첨 인원을 1명 이상 입력해주세요.");
-        return null;
-      }
-      if(count > eligible.length){
-        showToast(`추첨 가능한 참여자는 ${eligible.length}명입니다.`);
-        return null;
-      }
-      return {all, eligible, count};
-    }
-
-    async function startRace(){
-      if(isRacing) return;
-      const valid = validate();
-      if(!valid) return;
-
-      isRacing = true;
-      disableControls(true);
-      els.winnerModal.classList.remove("show");
-
-      // 이전 당첨자 제외가 켜진 경우, 화면에도 추첨 대상만 표시
-      currentParticipants = valid.eligible;
-      renderLanes(currentParticipants);
-      els.statusText.textContent = "공정한 무작위 추첨을 준비하고 있습니다…";
-
-      const order = secureShuffle(valid.eligible);
-      currentWinners = order.slice(0, valid.count);
-      const nonWinners = order.slice(valid.count);
-      const finalOrder = [...currentWinners, ...nonWinners];
-
-      await runCountdown();
-      playStartSound();
-
-      const seconds = Math.min(20, Math.max(3, Number(els.raceSeconds.value) || 7));
-      const finishX = Math.max(450, els.stage.clientWidth * 0.92 - 76);
-      const startAt = performance.now();
-      els.statusText.textContent = "오리들이 힘차게 달리는 중입니다!";
-
-      const ranking = new Map(finalOrder.map((name, idx) => [name, idx]));
-      const runners = [...els.stage.querySelectorAll(".runner")];
-
-      const finishTimes = new Map();
-      finalOrder.forEach((name, idx) => {
-        let finish;
-        if(idx < valid.count){
-          finish = seconds * 1000 * (0.72 + idx * Math.min(.025, .12 / Math.max(1, valid.count)));
-        }else{
-          const tailIndex = idx - valid.count;
-          finish = seconds * 1000 * (0.82 + (tailIndex / Math.max(1, nonWinners.length)) * .17);
-        }
-        finish += secureRandomInt(180);
-        finishTimes.set(name, finish);
-      });
-
-      runners.forEach(r => r.classList.add("racing"));
-
-      await new Promise(resolve => {
-        function animate(now){
-          const elapsed = now - startAt;
-          let allDone = true;
-
-          runners.forEach(runner => {
-            const lane = runner.closest(".lane");
-            const name = lane.dataset.name;
-            const finishTime = finishTimes.get(name);
-            const seed = ranking.get(name) + 1;
-            const progress = Math.min(1, elapsed / finishTime);
-            const eased = 1 - Math.pow(1 - progress, 2.4);
-            const wobble = Math.sin(elapsed / (95 + seed % 7)) * (1 - progress) * 5;
-            runner.style.transform = `translateX(${Math.max(0, eased * finishX + wobble)}px)`;
-            if(progress < 1) allDone = false;
-          });
-
-          if(!allDone){
-            requestAnimationFrame(animate);
-          }else{
-            resolve();
-          }
-        }
-        requestAnimationFrame(animate);
-      });
-
-      runners.forEach(r => r.classList.remove("racing"));
-      currentWinners.forEach(name => {
-        const lane = [...els.stage.querySelectorAll(".lane")].find(el => el.dataset.name === name);
-        if(lane){
-          lane.classList.add("winner");
-          lane.querySelector(".runner")?.classList.add("finished");
-        }
-      });
-
-      saveHistory(currentWinners);
-      els.statusText.textContent = `${currentWinners.length}명의 굿즈 당첨자가 결정되었습니다!`;
-      playWinSound();
-      launchConfetti();
-      setTimeout(showWinnerModal, 450);
-      isRacing = false;
-      disableControls(false);
-    }
-
-    function runCountdown(){
-      return new Promise(async resolve => {
-        els.countdown.classList.add("show");
-        for(const text of ["3","2","1","GO!"]){
-          els.countdown.innerHTML = `<span>${text}</span>`;
-          if(text !== "GO!") playTickSound();
-          await sleep(text === "GO!" ? 650 : 720);
-        }
-        els.countdown.classList.remove("show");
-        resolve();
-      });
-    }
-
-    function sleep(ms){return new Promise(r => setTimeout(r,ms))}
-
-    function disableControls(disabled){
-      [
-        els.participants, els.winnerCount, els.raceSeconds, els.eventTitle,
-        els.excludePrevious, els.startBtn, els.resetBtn, els.sampleBtn
-      ].forEach(el => el.disabled = disabled);
-    }
-
-    function showWinnerModal(){
-      els.modalSubtitle.textContent = els.eventTitle.value.trim() || "오늘의 굿즈 당첨자입니다.";
-      els.winnerList.innerHTML = currentWinners.map((name,i) => `
-        <div class="winner-item">
-          <span class="rank">${i+1}</span>
-          <span>${escapeHtml(name)}</span>
-        </div>`).join("");
-      els.winnerModal.classList.add("show");
-      els.winnerModal.setAttribute("aria-hidden","false");
-    }
-
-    function saveHistory(winners){
-      history.unshift({
-        at:new Date().toISOString(),
-        title:els.eventTitle.value.trim() || "굿즈 추첨",
-        winners:[...winners]
-      });
-      history = history.slice(0,50);
-      localStorage.setItem("humanimpact-duck-history",JSON.stringify(history));
-    }
-
-    function renderHistory(){
-      if(!history.length){
-        els.historyList.innerHTML = `<div class="help" style="text-align:center;padding:25px">아직 저장된 당첨 기록이 없습니다.</div>`;
-      }else{
-        els.historyList.innerHTML = history.map(item => {
-          const d = new Date(item.at);
-          return `
-          <div class="winner-item" style="display:block">
-            <div style="font-size:13px;color:var(--sub);margin-bottom:6px">${d.toLocaleString("ko-KR")}</div>
-            <div style="margin-bottom:5px">${escapeHtml(item.title)}</div>
-            <div style="font-size:15px;color:#355d56">${item.winners.map(escapeHtml).join(", ")}</div>
-          </div>`;
-        }).join("");
-      }
-    }
-
-    function resetRace(){
-      if(isRacing) return;
-      currentWinners = [];
-      currentParticipants = getParticipants();
-      renderLanes(currentParticipants);
-      els.statusText.textContent = currentParticipants.length
-        ? `총 ${currentParticipants.length}마리의 오리가 출발을 기다리고 있습니다.`
-        : "명단을 입력하면 오리들이 출발선에 섭니다.";
-    }
-
-    function copyWinners(){
-      const text = currentWinners.map((name,i)=>`${i+1}. ${name}`).join("\n");
-      navigator.clipboard.writeText(text)
-        .then(()=>showToast("당첨자 명단을 복사했습니다."))
-        .catch(()=>showToast("복사에 실패했습니다."));
-    }
-
-    function downloadCsv(){
-      if(!currentWinners.length) return;
-      const now = new Date();
-      const rows = [["순번","당첨자","이벤트","추첨일시"]];
-      currentWinners.forEach((name,i)=>{
-        rows.push([i+1,name,els.eventTitle.value.trim() || "굿즈 추첨",now.toLocaleString("ko-KR")]);
-      });
-      const csv = "\uFEFF" + rows.map(row => row.map(csvCell).join(",")).join("\r\n");
-      const blob = new Blob([csv],{type:"text/csv;charset=utf-8"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `휴먼임팩트_오리경주_당첨자_${formatDate(now)}.csv`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    function csvCell(v){
-      const s = String(v ?? "");
-      return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
-    }
-
-    function formatDate(d){
-      const pad=n=>String(n).padStart(2,"0");
-      return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
-    }
-
-    function launchConfetti(){
-      els.confetti.innerHTML = "";
-      const colors = ["#ffd85e","#58c8a5","#ff9c4a","#ef6a9a","#6ab7ff","#9d7bff"];
-      for(let i=0;i<110;i++){
-        const piece = document.createElement("i");
-        piece.style.left = `${Math.random()*100}vw`;
-        piece.style.background = colors[i%colors.length];
-        piece.style.setProperty("--dur",`${2.7+Math.random()*2.2}s`);
-        piece.style.setProperty("--drift",`${-120+Math.random()*240}px`);
-        piece.style.animationDelay = `${Math.random()*.8}s`;
-        els.confetti.appendChild(piece);
-      }
-      setTimeout(()=>els.confetti.innerHTML="",5500);
-    }
-
-    function showToast(message){
-      els.toast.textContent = message;
-      els.toast.classList.add("show");
-      clearTimeout(showToast.timer);
-      showToast.timer = setTimeout(()=>els.toast.classList.remove("show"),2200);
-    }
-
-    function audioContext(){
-      if(!els.soundEnabled.checked) return null;
-      const Ctx = window.AudioContext || window.webkitAudioContext;
-      if(!Ctx) return null;
-      audioContext.ctx ||= new Ctx();
-      return audioContext.ctx;
-    }
-
-    function beep(freq,duration,type="sine",volume=.08,delay=0){
-      const ctx = audioContext();
-      if(!ctx) return;
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = type;
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.0001,ctx.currentTime+delay);
-      gain.gain.exponentialRampToValueAtTime(volume,ctx.currentTime+delay+.01);
-      gain.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+delay+duration);
-      osc.connect(gain).connect(ctx.destination);
-      osc.start(ctx.currentTime+delay);
-      osc.stop(ctx.currentTime+delay+duration+.02);
-    }
-
-    function playTickSound(){beep(540,.12,"sine",.07)}
-    function playStartSound(){
-      beep(620,.16,"square",.05,0);
-      beep(820,.2,"square",.05,.16);
-    }
-    function playWinSound(){
-      [660,784,988,1318].forEach((f,i)=>beep(f,.32,"triangle",.08,i*.13));
-    }
-
-    els.participants.addEventListener("input",updateFromInput);
-    els.eventTitle.addEventListener("input",()=>els.raceTitle.textContent=els.eventTitle.value.trim()||"오늘의 굿즈 당첨자는?");
-    els.startBtn.addEventListener("click",startRace);
-    els.resetBtn.addEventListener("click",resetRace);
-    els.closeModalBtn.addEventListener("click",()=>els.winnerModal.classList.remove("show"));
-    els.copyWinnersBtn.addEventListener("click",copyWinners);
-    els.downloadBtn.addEventListener("click",downloadCsv);
-    els.resultsBtn.addEventListener("click",()=>{
-      renderHistory();
-      els.historyModal.classList.add("show");
+    const top=H*0.17, bottom=H*0.82;
+    racers=visible.map((name,index)=>{
+      const order=fixedOrder.indexOf(name);
+      const isEligible=eligible.includes(name);
+      const finishTime=isEligible
+        ? raceDuration*(0.82 + (order/Math.max(1,fixedOrder.length-1))*0.17) + secureInt(140)
+        : raceDuration*1.08 + secureInt(500);
+      const lane=index/Math.max(1,visible.length-1);
+      const y=top+(bottom-top)*lane+rand(-5,5);
+      return {
+        name,index,order,isWinner:winners.includes(name),eligible:isEligible,finishTime,
+        y,baseY:y,phase:rand(0,Math.PI*2),phase2:rand(0,Math.PI*2),
+        amp:rand(.045,.115),freq:rand(1.3,3.6),progress:0,lastProgress:0,
+        color:colors[index%colors.length],accessory:accessories[index%accessories.length],
+        finished:false,finishAt:0,seed:rand(.3,2.4)
+      };
     });
-    els.closeHistoryBtn.addEventListener("click",()=>els.historyModal.classList.remove("show"));
-    els.clearHistoryBtn.addEventListener("click",()=>{
-      if(confirm("당첨 기록을 모두 삭제할까요?")){
-        history=[];
-        localStorage.removeItem("humanimpact-duck-history");
-        renderHistory();
-        showToast("당첨 기록을 삭제했습니다.");
-      }
-    });
-    els.sampleBtn.addEventListener("click",()=>{
-      els.participants.value = [
-        "김휴먼 | 행복복지관","이임팩트 | 사랑센터","박오리 | 희망복지관",
-        "최관계 | 마음복지관","정실천 | 나눔센터","한사람 | 우리복지관",
-        "윤변화 | 함께센터","송행복 | 이웃복지관","강연결 | 온마을센터",
-        "오성장 | 꿈복지관","임공감 | 다정센터","조협력 | 새봄복지관"
-      ].join("\n");
-      updateFromInput();
-    });
-    els.fullscreenBtn.addEventListener("click",()=>{
-      if(!document.fullscreenElement){
-        document.documentElement.requestFullscreen?.();
-      }else{
-        document.exitFullscreen?.();
-      }
-    });
-    els.winnerModal.addEventListener("click",e=>{
-      if(e.target===els.winnerModal) els.winnerModal.classList.remove("show");
-    });
-    els.historyModal.addEventListener("click",e=>{
-      if(e.target===els.historyModal) els.historyModal.classList.remove("show");
-    });
+    els.hudCount.textContent=visible.length;
+    els.hudWinnerCount.textContent=winnerCount;
+    els.waitingTitle.textContent=els.eventTitle.value.trim()||"오늘의 굿즈 당첨자는?";
+    els.waiting.style.display="none";
+    els.progressBar.style.width="0%";
+    renderRanking(racers);
+    return true;
+  }
 
-    updateFromInput();
-  </script>
+  async function startRace(){
+    if(isRacing)return;
+    if(!buildRace())return;
+    els.setup.classList.add("hidden");
+    els.winnerModal.classList.remove("show");
+    isRacing=true; finishStarted=false; disableControls(true);
+    racers.forEach(r=>{r.progress=0;r.lastProgress=0;r.finished=false;r.finishAt=0});
+    await countdown();
+    startRaceSound();
+    raceStart=performance.now(); lastFrame=raceStart; sceneTime=0;
+    cancelAnimationFrame(animId); animId=requestAnimationFrame(loop);
+  }
+
+  function loop(now){
+    const elapsed=now-raceStart, dt=Math.min(40,now-lastFrame); lastFrame=now; sceneTime+=dt;
+    let lead=0, finishedCount=0;
+    racers.forEach(r=>{
+      const t=clamp(elapsed/r.finishTime,0,1);
+      const noise=(Math.sin(t*Math.PI*2*r.freq+r.phase)*r.amp +
+                   Math.sin(t*Math.PI*2*(r.freq*.55)+r.phase2)*r.amp*.55)*Math.sin(Math.PI*t);
+      let p=clamp(t+noise,0,1);
+      if(p<r.lastProgress)p=r.lastProgress+Math.max(0,dt/r.finishTime*.15);
+      r.progress=clamp(p,0,1); r.lastProgress=r.progress;
+      r.y=r.baseY+Math.sin(sceneTime/170+r.phase)*3.2;
+      if(t>=1&&!r.finished){r.finished=true;r.finishAt=now;finishSound(r.isWinner)}
+      if(r.finished)finishedCount++;
+      lead=Math.max(lead,r.progress);
+    });
+    drawScene(now,lead);
+    renderRanking(racers);
+    els.progressBar.style.width=(lead*100).toFixed(1)+"%";
+    els.raceClock.textContent=lead<1?`${Math.max(0,(raceDuration-elapsed)/1000).toFixed(1)}s`:"FINISH!";
+
+    const allWinnersDone=winners.every(n=>racers.find(r=>r.name===n)?.finished);
+    if(allWinnersDone&&!finishStarted){
+      finishStarted=true;
+      setTimeout(endRace,1000);
+    }
+    if(isRacing)animId=requestAnimationFrame(loop);
+  }
+
+  function endRace(){
+    isRacing=false; disableControls(false); winSound(); saveHistory();
+    launchConfetti(); showWinners();
+  }
+
+  function disableControls(v){
+    els.startSideBtn.disabled=v;els.newRaceBtn.disabled=v;els.setupBtn.disabled=v;els.applyAndStartBtn.disabled=v;
+  }
+
+  async function countdown(){
+    els.countdown.classList.add("show");
+    for(const n of ["3","2","1","GO!"]){
+      els.countdown.innerHTML=`<b>${n}</b>`; if(n!=="GO!")tickSound();
+      await new Promise(r=>setTimeout(r,n==="GO!"?620:720));
+    }
+    els.countdown.classList.remove("show");
+  }
+
+  function drawScene(now,lead){
+    ctx.clearRect(0,0,W,H);
+    drawSkyAndBanks(now,lead);
+    drawWater(now,lead);
+    drawStartAndFinish(lead);
+    const ordered=[...racers].sort((a,b)=>a.y-b.y);
+    ordered.forEach(r=>drawDuck(r,now,lead));
+    drawForeground(now,lead);
+  }
+
+  function drawSkyAndBanks(now,lead){
+    const sky=ctx.createLinearGradient(0,0,0,H*.42);
+    sky.addColorStop(0,"#76d5ea");sky.addColorStop(1,"#d9fbff");
+    ctx.fillStyle=sky;ctx.fillRect(0,0,W,H*.42);
+
+    const scroll=(lead*W*2.2)%W;
+    ctx.fillStyle="rgba(255,255,255,.85)";
+    for(let i=-1;i<5;i++){
+      const x=i*320-scroll*.18;
+      cloud(x,60+(i%2)*45,1+(i%3)*.18);
+    }
+
+    ctx.fillStyle="#69bb73";
+    ctx.beginPath();ctx.moveTo(0,H*.31);
+    for(let x=0;x<=W;x+=90){
+      const y=H*.29+Math.sin((x+scroll*.35)/150)*22+Math.sin(x/57)*8;
+      ctx.lineTo(x,y);
+    }
+    ctx.lineTo(W,H*.43);ctx.lineTo(0,H*.43);ctx.closePath();ctx.fill();
+
+    ctx.fillStyle="#3d9b67";
+    ctx.beginPath();ctx.moveTo(0,H*.36);
+    for(let x=0;x<=W;x+=65){
+      ctx.lineTo(x,H*.35+Math.sin((x+scroll*.7)/95)*13);
+    }
+    ctx.lineTo(W,H*.45);ctx.lineTo(0,H*.45);ctx.closePath();ctx.fill();
+
+    const bankY=H*.405;
+    ctx.fillStyle="#e8c977";ctx.fillRect(0,bankY,W,H*.055);
+    ctx.fillStyle="#7bc774";ctx.fillRect(0,bankY-8,W,12);
+  }
+
+  function cloud(x,y,s){
+    ctx.save();ctx.translate(x,y);ctx.scale(s,s);
+    ctx.beginPath();ctx.arc(0,12,25,0,Math.PI*2);ctx.arc(28,0,34,0,Math.PI*2);
+    ctx.arc(62,13,24,0,Math.PI*2);ctx.rect(0,12,62,26);ctx.fill();ctx.restore();
+  }
+
+  function drawWater(now,lead){
+    const y=H*.455;
+    const g=ctx.createLinearGradient(0,y,0,H);
+    g.addColorStop(0,"#32bdd4");g.addColorStop(.5,"#0a9fbe");g.addColorStop(1,"#08748f");
+    ctx.fillStyle=g;ctx.fillRect(0,y,W,H-y);
+    ctx.globalAlpha=.22;ctx.strokeStyle="white";ctx.lineWidth=2;
+    for(let row=0;row<8;row++){
+      ctx.beginPath();
+      const yy=y+25+row*((H-y)/8);
+      for(let x=-40;x<W+40;x+=55){
+        const wave=Math.sin((x+now*.08+row*23)/42)*5;
+        ctx.moveTo(x,yy+wave);ctx.quadraticCurveTo(x+16,yy-3+wave,x+35,yy+wave);
+      }
+      ctx.stroke();
+    }
+    ctx.globalAlpha=1;
+  }
+
+  function drawStartAndFinish(lead){
+    const waterTop=H*.455;
+    const startX=92;
+    ctx.strokeStyle="rgba(255,255,255,.9)";ctx.lineWidth=4;ctx.setLineDash([10,9]);
+    ctx.beginPath();ctx.moveTo(startX,waterTop+5);ctx.lineTo(startX,H-24);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle="rgba(3,58,69,.8)";roundRect(startX-37,waterTop+10,74,28,12);ctx.fill();
+    ctx.fillStyle="white";ctx.font="900 13px sans-serif";ctx.textAlign="center";ctx.fillText("START",startX,waterTop+29);
+
+    const finishAppear=smooth(clamp((lead-.7)/.25,0,1));
+    const finishX=W+70-finishAppear*(W*.16+70);
+    const stripe=14;
+    for(let y=waterTop;y<H-16;y+=stripe){
+      ctx.fillStyle=(Math.floor((y-waterTop)/stripe)%2===0)?"#fff":"#172f32";
+      ctx.fillRect(finishX,y,18,stripe);
+    }
+    ctx.fillStyle="rgba(5,52,60,.88)";roundRect(finishX-43,waterTop+10,104,30,13);ctx.fill();
+    ctx.fillStyle="white";ctx.textAlign="center";ctx.font="900 13px sans-serif";ctx.fillText("FINISH",finishX+9,waterTop+30);
+  }
+
+  function drawDuck(r,now,lead){
+    const waterTop=H*.455;
+    const finishAppear=smooth(clamp((lead-.7)/.25,0,1));
+    const finishX=W+70-finishAppear*(W*.16+70);
+    const startX=92;
+    const endX=finishX-38;
+    let x=startX+(endX-startX)*r.progress;
+    const visibleCount=Math.max(1,racers.length);
+    const scale=visibleCount<=12?1:visibleCount<=24?.82:visibleCount<=45?.62:.47;
+    const bob=Math.sin(now/110+r.phase)*3*scale;
+    const y=clamp(r.y,waterTop+32,H-32)+bob;
+
+    ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);
+    if(isRacing&&!r.finished){
+      ctx.globalAlpha=.5;ctx.strokeStyle="white";ctx.lineWidth=3;
+      for(let i=0;i<3;i++){
+        ctx.beginPath();ctx.arc(-30-i*12,10+i*2,12+i*3,-.6,.6);ctx.stroke();
+      }
+      ctx.globalAlpha=1;
+    }
+    // body shadow
+    ctx.fillStyle="rgba(2,50,63,.2)";ctx.beginPath();ctx.ellipse(-2,18,34,8,0,0,Math.PI*2);ctx.fill();
+    // body
+    ctx.fillStyle="#ffd94e";ctx.beginPath();ctx.ellipse(0,0,31,22,-.1,0,Math.PI*2);ctx.fill();
+    // head
+    ctx.beginPath();ctx.arc(20,-21,19,0,Math.PI*2);ctx.fill();
+    // beak
+    ctx.fillStyle="#ff8b38";ctx.beginPath();ctx.moveTo(35,-20);ctx.lineTo(52,-15);ctx.lineTo(35,-10);ctx.closePath();ctx.fill();
+    // wing
+    ctx.fillStyle="#f3bc35";ctx.beginPath();ctx.ellipse(-7,-2,16,10,.25,0,Math.PI*2);ctx.fill();
+    ctx.strokeStyle="#d99d21";ctx.lineWidth=2;ctx.beginPath();ctx.arc(-7,-2,10,-.6,1.5);ctx.stroke();
+    // eye
+    ctx.fillStyle="#15313a";ctx.beginPath();ctx.arc(25,-27,3.2,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="white";ctx.beginPath();ctx.arc(26,-28,1,0,Math.PI*2);ctx.fill();
+    // bib
+    ctx.fillStyle=r.color;roundRect(-20,-17,22,15,5);ctx.fill();
+    ctx.fillStyle="white";ctx.textAlign="center";ctx.font="900 10px sans-serif";ctx.fillText(String(r.index+1),-9,-6);
+    // accessory
+    if(r.accessory==="cap"){
+      ctx.fillStyle=r.color;ctx.beginPath();ctx.arc(17,-38,13,Math.PI,Math.PI*2);ctx.fill();
+      ctx.fillRect(17,-39,18,4);
+    }else if(r.accessory==="scarf"){
+      ctx.fillStyle=r.color;ctx.fillRect(8,-12,25,5);ctx.beginPath();ctx.moveTo(10,-9);ctx.lineTo(-1,7);ctx.lineTo(14,-5);ctx.fill();
+    }
+    ctx.restore();
+
+    const ranking=[...racers].sort((a,b)=>b.progress-a.progress);
+    const rank=ranking.indexOf(r)+1;
+    const showTag=racers.length<=28||rank<=7||r.isWinner&&r.progress>.72;
+    if(showTag){
+      ctx.font=`900 ${racers.length<=20?13:11}px sans-serif`;
+      const label=r.name.length>18?r.name.slice(0,17)+"…":r.name;
+      const tw=Math.min(180,ctx.measureText(label).width+18);
+      const lx=clamp(x-tw/2,4,W-tw-4), ly=y-(racers.length<=20?53:39)*scale;
+      ctx.fillStyle=rank===1?"rgba(255,216,77,.96)":"rgba(9,53,61,.88)";
+      roundRect(lx,ly,tw,23,10);ctx.fill();
+      ctx.fillStyle=rank===1?varColor("--navy"):"white";ctx.textAlign="center";
+      ctx.fillText(label,lx+tw/2,ly+16);
+    }
+  }
+
+  function drawForeground(now,lead){
+    ctx.fillStyle="rgba(4,79,77,.25)";
+    for(let x=20;x<W;x+=150){
+      const xx=(x-lead*W*1.4)%(W+170);
+      reed(xx<0?xx+W+170:xx,H-8,1);
+    }
+  }
+  function reed(x,y,s){
+    ctx.save();ctx.translate(x,y);ctx.strokeStyle="#276f57";ctx.lineWidth=4;
+    for(let i=0;i<5;i++){ctx.beginPath();ctx.moveTo(i*8,0);ctx.quadraticCurveTo(i*8-3,-35,i*8+4,-70-rand(0,18));ctx.stroke()}
+    ctx.restore();
+  }
+
+  function renderRanking(list){
+    const ranked=[...list].sort((a,b)=>b.progress-a.progress).slice(0,8);
+    if(!ranked.length){els.rankList.innerHTML=`<div class="small">명단을 설정해주세요.</div>`;return}
+    els.rankList.innerHTML=ranked.map((r,i)=>`
+      <div class="rank-card">
+        <div class="rank-num">${i+1}</div>
+        <div>
+          <div class="rank-name" title="${escapeHtml(r.name)}">${escapeHtml(r.name)}</div>
+          <div class="rank-meter"><i style="width:${(r.progress*100).toFixed(1)}%"></i></div>
+        </div>
+      </div>`).join("");
+  }
+
+  function showWinners(){
+    els.winnerSubtitle.textContent=els.eventTitle.value.trim()||"오늘의 굿즈 당첨자입니다.";
+    const top=winners.slice(0,3);
+    const podiumData=[];
+    if(top[1])podiumData.push({name:top[1],cls:"second",rank:2});
+    if(top[0])podiumData.push({name:top[0],cls:"first",rank:1});
+    if(top[2])podiumData.push({name:top[2],cls:"third",rank:3});
+    els.podium.innerHTML=podiumData.map(p=>`
+      <div class="podium-item ${p.cls}">
+        <div class="podium-duck">🦆</div>
+        <div class="podium-name" title="${escapeHtml(p.name)}">${escapeHtml(p.name)}</div>
+        <div class="podium-step">${p.rank}</div>
+      </div>`).join("");
+    els.extraWinners.innerHTML=winners.slice(3).map((n,i)=>`
+      <div class="extra-winner"><b>${i+4}</b><span>${escapeHtml(n)}</span></div>`).join("");
+    els.winnerModal.classList.add("show");
+  }
+
+  function saveHistory(){
+    history.unshift({at:new Date().toISOString(),title:els.eventTitle.value.trim()||"굿즈 추첨",winners:[...winners]});
+    history=history.slice(0,50);localStorage.setItem("humanimpact-duck-race-v2-history",JSON.stringify(history));
+  }
+  function renderHistory(){
+    els.historyList.innerHTML=history.length?history.map(h=>`
+      <div class="extra-winner" style="display:block">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:5px">${new Date(h.at).toLocaleString("ko-KR")}</div>
+        <div>${escapeHtml(h.title)}</div>
+        <div style="font-size:13px;color:#55736d;margin-top:4px">${h.winners.map(escapeHtml).join(", ")}</div>
+      </div>`).join(""):`<div class="sub">저장된 당첨 기록이 없습니다.</div>`;
+  }
+
+  function launchConfetti(){
+    els.confetti.innerHTML="";
+    const cs=["#ffd84d","#5bd5b2","#ff9f43","#ef6f9c","#6d8eff","#9c6ade"];
+    for(let i=0;i<120;i++){
+      const p=document.createElement("i");p.style.left=Math.random()*100+"vw";p.style.background=cs[i%cs.length];
+      p.style.setProperty("--dur",(2.6+Math.random()*2.4)+"s");p.style.setProperty("--drift",(-150+Math.random()*300)+"px");
+      p.style.animationDelay=Math.random()*.7+"s";els.confetti.appendChild(p);
+    }
+    setTimeout(()=>els.confetti.innerHTML="",5500);
+  }
+  function toast(msg){
+    els.toast.textContent=msg;els.toast.classList.add("show");clearTimeout(toast.t);
+    toast.t=setTimeout(()=>els.toast.classList.remove("show"),2300);
+  }
+
+  function getAudio(){
+    if(!els.soundEnabled.checked)return null;
+    const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;
+    audioCtx ||= new C();return audioCtx;
+  }
+  function beep(freq,dur,type="sine",vol=.07,delay=0){
+    const ac=getAudio();if(!ac)return;const o=ac.createOscillator(),g=ac.createGain();
+    o.type=type;o.frequency.value=freq;g.gain.setValueAtTime(.0001,ac.currentTime+delay);
+    g.gain.exponentialRampToValueAtTime(vol,ac.currentTime+delay+.01);
+    g.gain.exponentialRampToValueAtTime(.0001,ac.currentTime+delay+dur);
+    o.connect(g).connect(ac.destination);o.start(ac.currentTime+delay);o.stop(ac.currentTime+delay+dur+.03);
+  }
+  function tickSound(){beep(520,.12,"sine",.06)}
+  function startRaceSound(){beep(620,.16,"square",.045);beep(820,.22,"square",.045,.15)}
+  function finishSound(win){beep(win?920:520,.08,"triangle",win?.035:.018)}
+  function winSound(){[660,784,988,1318].forEach((f,i)=>beep(f,.34,"triangle",.075,i*.13))}
+
+  function roundRect(x,y,w,h,r){
+    r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();
+  }
+  function varColor(name){return getComputedStyle(document.documentElement).getPropertyValue(name).trim()}
+
+  function copyWinners(){
+    navigator.clipboard.writeText(winners.map((n,i)=>`${i+1}. ${n}`).join("\n"))
+      .then(()=>toast("당첨자 명단을 복사했습니다.")).catch(()=>toast("복사에 실패했습니다."));
+  }
+  function csv(){
+    const now=new Date(),rows=[["순위","당첨자","이벤트","추첨일시"]];
+    winners.forEach((n,i)=>rows.push([i+1,n,els.eventTitle.value.trim()||"굿즈 추첨",now.toLocaleString("ko-KR")]));
+    const cell=v=>/[",\n]/.test(String(v))?`"${String(v).replace(/"/g,'""')}"`:String(v);
+    const blob=new Blob(["\uFEFF"+rows.map(r=>r.map(cell).join(",")).join("\r\n")],{type:"text/csv;charset=utf-8"});
+    const url=URL.createObjectURL(blob),a=document.createElement("a");
+    a.href=url;a.download=`휴먼임팩트_덕레이스_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,"0")}${String(now.getDate()).padStart(2,"0")}.csv`;
+    a.click();URL.revokeObjectURL(url);
+  }
+
+  els.participants.addEventListener("input",parseParticipants);
+  els.setupBtn.addEventListener("click",()=>els.setup.classList.remove("hidden"));
+  els.applyAndStartBtn.addEventListener("click",startRace);
+  els.startSideBtn.addEventListener("click",startRace);
+  els.newRaceBtn.addEventListener("click",()=>{
+    if(isRacing)return;
+    els.waiting.style.display="flex";els.progressBar.style.width="0%";els.raceClock.textContent="READY";
+    racers.forEach(r=>{r.progress=0;r.lastProgress=0});drawScene(performance.now(),0);renderRanking(racers);
+  });
+  els.sampleBtn.addEventListener("click",()=>{
+    els.participants.value=["김휴먼 | 행복복지관","이임팩트 | 사랑센터","박오리 | 희망복지관","최관계 | 마음복지관",
+      "정실천 | 나눔센터","한사람 | 우리복지관","윤변화 | 함께센터","송행복 | 이웃복지관","강연결 | 온마을센터",
+      "오성장 | 꿈복지관","임공감 | 다정센터","조협력 | 새봄복지관","문동행 | 햇살센터","백마음 | 푸른복지관",
+      "신도전 | 다함께센터","유희망 | 좋은이웃"].join("\n");parseParticipants();
+  });
+  els.fullscreenBtn.addEventListener("click",()=>{
+    const root=document.documentElement;
+    if(!document.fullscreenElement&&!document.webkitFullscreenElement)(root.requestFullscreen||root.webkitRequestFullscreen)?.call(root);
+    else (document.exitFullscreen||document.webkitExitFullscreen)?.call(document);
+  });
+  els.closeWinnerBtn.addEventListener("click",()=>els.winnerModal.classList.remove("show"));
+  els.copyBtn.addEventListener("click",copyWinners);els.csvBtn.addEventListener("click",csv);
+  els.historyBtn.addEventListener("click",()=>{renderHistory();els.historyModal.classList.add("show")});
+  els.closeHistoryBtn.addEventListener("click",()=>els.historyModal.classList.remove("show"));
+  els.clearHistoryBtn.addEventListener("click",()=>{
+    if(confirm("당첨 기록을 모두 삭제할까요?")){history=[];localStorage.removeItem("humanimpact-duck-race-v2-history");renderHistory()}
+  });
+  els.winnerModal.addEventListener("click",e=>{if(e.target===els.winnerModal)els.winnerModal.classList.remove("show")});
+  els.historyModal.addEventListener("click",e=>{if(e.target===els.historyModal)els.historyModal.classList.remove("show")});
+
+  parseParticipants();resize();renderRanking([]);
+})();
+</script>
 </body>
 </html>
